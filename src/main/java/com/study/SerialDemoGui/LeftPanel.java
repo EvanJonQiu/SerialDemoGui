@@ -47,14 +47,18 @@ public class LeftPanel extends JPanel {
     private JComboBox<String> flowControlCB;
     
     private String portName;
-    private int baudRate;
-    private int dataBits;
-    private int stopBits;
-    private int parity;
+    private int baudRate = 115200;
+    private int dataBits = 8;
+    private int stopBits = SerialPort.ONE_STOP_BIT;
+    private int parity = SerialPort.NO_PARITY;
     private int flowControl = SerialPort.FLOW_CONTROL_DISABLED;
     
-    public LeftPanel() {
-        this.setLayout(new GridLayout(2, 1));        
+    private SerialWrapper serialWrapper;
+    
+    public LeftPanel(SerialWrapper serialWrapper) {
+        this.setLayout(new GridLayout(2, 1));
+        
+        this.serialWrapper = serialWrapper;
         
         JPanel optionPanel = new JPanel(new GridBagLayout());
         optionPanel.setBorder(BorderFactory.createTitledBorder("端口设置"));
@@ -70,6 +74,17 @@ public class LeftPanel extends JPanel {
         optionPanel.add(label, c);
         
         portCB = new JComboBox<String>();
+        portCB.addItemListener(new ItemListener() {
+
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    setPortName(e.getItem().toString());
+                }   
+            }
+            
+        });
+        this.intPorts();
+        
         c.weightx = 1;
         c.gridx = 1;
         c.gridy = 0;
@@ -224,10 +239,12 @@ public class LeftPanel extends JPanel {
                     isOpened = true;
                     openBtn.setText("关闭");
                     disableCtrls(false);
+                    openPort();
                 } else {
                     isOpened = false;
                     openBtn.setText("打开");
                     disableCtrls(true);
+                    closePort();
                 }
             }
         });
@@ -242,6 +259,28 @@ public class LeftPanel extends JPanel {
         stopBitsCB.setEnabled(b);
         parityCB.setEnabled(b);
         flowControlCB.setEnabled(false);
+    }
+    
+    private void intPorts() {
+        SerialPort [] serialPorts = SerialPort.getCommPorts();
+        if (serialPorts != null && serialPorts.length > 0) {
+            for(SerialPort serialPort: serialPorts) {
+                this.portCB.addItem(serialPort.getSystemPortName());
+            }
+            this.portCB.setSelectedIndex(0);
+        }
+    }
+    
+    private void openPort() {
+        if (this.serialWrapper != null) {
+            this.serialWrapper.openComPort(this.portName, this.baudRate, this.dataBits, this.stopBits, this.parity);
+        }
+    }
+    
+    private void closePort() {
+        if (this.serialWrapper != null && this.serialWrapper.getPort() != null) {
+            this.serialWrapper.closeComPort();
+        }
     }
 
     public String getPortName() {
