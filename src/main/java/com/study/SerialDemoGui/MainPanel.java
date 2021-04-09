@@ -19,8 +19,9 @@ public class MainPanel extends JPanel {
     public MainPanel() {
         this.setLayout(new GridLayout(3, 1));
         
-        outputArea = new JTextArea();
+        outputArea = new JTextArea(10, 1000);
         JScrollPane scroll = new JScrollPane(outputArea);
+        outputArea.setLineWrap(true);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
         this.add(scroll);
@@ -31,5 +32,11 @@ public class MainPanel extends JPanel {
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
         this.add(scroll);
     }
-
+    
+    public void writeData(String data) {
+        if (data != null) {
+            this.outputArea.append(data);
+            this.outputArea.setCaretPosition(this.outputArea.getText().length());
+        }
+    }
 }

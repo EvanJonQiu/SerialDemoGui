@@ -16,6 +16,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.fazecast.jSerialComm.SerialPort;
+import com.fazecast.jSerialComm.SerialPortDataListener;
+import com.fazecast.jSerialComm.SerialPortEvent;
 
 public class LeftPanel extends JPanel {
 
@@ -54,6 +56,7 @@ public class LeftPanel extends JPanel {
     private int flowControl = SerialPort.FLOW_CONTROL_DISABLED;
     
     private SerialWrapper serialWrapper;
+    private MainPanel mainPanel;
     
     public LeftPanel(SerialWrapper serialWrapper) {
         this.setLayout(new GridLayout(2, 1));
@@ -274,6 +277,23 @@ public class LeftPanel extends JPanel {
     private void openPort() {
         if (this.serialWrapper != null) {
             this.serialWrapper.openComPort(this.portName, this.baudRate, this.dataBits, this.stopBits, this.parity);
+            this.serialWrapper.setSerialPortListener(this.serialWrapper.getPort(), new SerialPortDataListener() {
+
+                @Override
+                public int getListeningEvents() {
+                    return SerialPort.LISTENING_EVENT_DATA_AVAILABLE;
+                }
+
+                @Override
+                public void serialEvent(SerialPortEvent event) {
+                    if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
+                        return;
+                    
+                    byte[] bytes = serialWrapper.readData(serialWrapper.getPort());
+                    System.out.println("收到的数据："+ new String(bytes));
+                    mainPanel.writeData(new String(bytes));
+                }
+            });
         }
     }
     
@@ -281,6 +301,10 @@ public class LeftPanel extends JPanel {
         if (this.serialWrapper != null && this.serialWrapper.getPort() != null) {
             this.serialWrapper.closeComPort();
         }
+    }
+    
+    public void setOutputArea(MainPanel mainPanel) {
+        this.mainPanel = mainPanel;
     }
 
     public String getPortName() {

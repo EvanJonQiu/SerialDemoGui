@@ -62,6 +62,8 @@ public class App extends JFrame {
         c.gridy = 0;
         centerPanel.add(mainPanel, c);
         
+        leftPanel.setOutputArea(mainPanel);
+        
         this.add(centerPanel, BorderLayout.CENTER);
         
         this.setVisible(true);

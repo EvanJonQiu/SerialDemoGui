@@ -9,11 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
+import com.fazecast.jSerialComm.SerialPortInvalidPortException;
 
 public class SerialWrapper {
     private static final Logger logger = LoggerFactory.getLogger(SerialWrapper.class);
     
-    private static final int BUFFER_SIZE = 2000;
+    private static final int BUFFER_SIZE = 1000;
     private byte[] buffer = new byte[BUFFER_SIZE];
     
     private static SerialWrapper serialWrapper = null;
@@ -34,17 +35,11 @@ public class SerialWrapper {
         logger.debug("openComPort: " + portName + "," + String.format("%d",  baudRate) + "," + String.format("%d", dataBits) + ","
                 + String.format("%d", stopBits) + "," + String.format("%d", parity));
         
-        if (portName == null || "".equals(portName)) {
-            SerialPort [] serialPorts = SerialPort.getCommPorts();
-            if (serialPorts != null && serialPorts.length > 0) {
-                portName = serialPorts[0].getSystemPortName();
-            }
-        }
-        
         this.serialPort = SerialPort.getCommPort(portName);
         this.serialPort.openPort();
         this.serialPort.setComPortParameters(baudRate, dataBits, stopBits, parity);
         this.serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
+        
         return this.serialPort;
     }
     
@@ -68,9 +63,9 @@ public class SerialWrapper {
         try {
             is = serialPort.getInputStream();
             int buffLength = is.available();
+            Arrays.fill(this.buffer, (byte)0);
             
             while (buffLength > 0) {
-                Arrays.fill(this.buffer, (byte)0);
                 is.read(this.buffer);
                 buffLength = is.available();
             }
